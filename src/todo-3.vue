@@ -62,10 +62,12 @@
                         @click="setVisibility('completed')">已经完成</li>
                 </ul>
                 <div class="clear-todo">
-                    <button @click="openDialog('isShowClearAllTodo')">
+                    <!--<button @click="openDialog('isShowClearAllTodo')">-->
+                    <button @click="openAllTodoDialog">
                         清除所有任务
                     </button>
-                    <button @click="openDialog('isShowClearCompleteTodo')">
+                    <!--<button @click="openDialog('isShowClearCompleteTodo')">-->
+                    <button @click="openCompleteTodoDialog">
                         清除已完成任务
                     </button>
                 </div>
@@ -157,7 +159,7 @@
         computed: {
             /* 不同选择对应todo个数*/
             remaing () {
-                // return filters.active(this.todoList).length;
+                
                 return filters[this.visibility](this.todoList).length;
             },
             // 显示在左边todo的文字
@@ -208,11 +210,28 @@
                 todo.title = this.beforeEditCache;
             },
             
+            // 设置当前的过滤器
             setVisibility(param) {
                 this.visibility = param;
             },
             
-            // 显示清除已经完成的任务弹窗
+            // 显示 确认 清除已完成任务弹窗
+            openCompleteTodoDialog() {
+//                console.log('22' +  filters.completed(this.todoList).length );
+                if ( filters.completed(this.todoList).length > 0) {
+                    this.isShowClearCompleteTodo = true;
+                }
+            },
+            
+            // 显示 确认 清除全部任务弹窗
+            openAllTodoDialog() {
+//                console.log( '11' + this.todoList.length );
+                if ( this.todoList.length > 0) {
+                    this.isShowClearAllTodo = true;
+                }
+            },
+            
+            // 清除已经完成的任务
             sureClearCompleteTodo() {
                 this.todoList = filters.active(this.todoList);
                 this.isShowClearCompleteTodo = false;
@@ -222,10 +241,12 @@
                 this.todoList = [];
                 this.isShowClearAllTodo = false;
             },
+            
             // 显示弹窗
             openDialog (attr) {
                 this[attr] = true;
             },
+            
             // 关闭弹窗
             closeDialog (attr) {
                 this[attr] = false;
