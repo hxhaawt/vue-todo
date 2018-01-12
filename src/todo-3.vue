@@ -12,8 +12,8 @@
         
         <div class="main" v-show="pageTodoList.length">
             <ul class="todo-list">
-                <li v-for="todo in pageTodoList"
-                    :key="todo.id"
+                <li v-for="(todo, index) in pageTodoList"
+                    :key="index"
                     @dblclick="editTodo(todo)"
                     class='todo'
                     
@@ -117,18 +117,32 @@
         active: todos => todos.filter(todo => !todo.completed),
         completed: todos => todos.filter(todo => todo.completed)
     };
-    const STORAGE_KEY = 'todo-v1.0-key';
+    const STORAGE_KEY = 'todo-v1.2-key';
     
     var todoStorage = {
         fetch () {
-            var todos = JSON.parse(localStorage.getItem(STORAGE_KEY)
-                || '[{"title":"请输入您的todo任务", "completed":false}]');
-            
+            // parse用于从一个字符串中解析出json对象
+            // todos是对象
+            var storeItem = localStorage.getItem(STORAGE_KEY);
+
+            var todos = JSON.parse(storeItem || '[{"title":"请输入您的todo任务", "completed":false}]');
+
+            // 由于空对象转换成boolean类型时也是true，所以如果想在todo
+            // 页面中始终都有一条todo显示，就要像下面一样
+            // 不然像上面一样，当用户删除了所有todo时，下面的提示就不
+            // 会显示了，如果只要显示一次提示todo，可以用上面的
+            // var todos = JSON.parse(storeItem).length>0 ? JSON.parse(storeItem) : JSON.parse('[{"title":"请输入您的todo任务", "completed":false}]');
+
             todos.forEach((todo, index) => { todo.id = index });
-            todoStorage.uid = todos.length;
+            todoStorage.id = todos.length;
+
             return todos;
         },
         save (todos) {
+            // 以字符串的形式保存
+            // stringify()用于从一个对象解析出字符串
+            console.log("save-->");
+            console.log(todos);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
         }
     };
@@ -147,8 +161,13 @@
                 editedTodo: null,   // 保存正在编辑的todo，是个对象
                 newTodo: '',        // 保存输入的todo内容
                 visibility: 'all',  // 全局过滤器选择
-                todoList: todoStorage.fetch()   // 获取本地存储的todo列表
+                todoList: ""        // 获取本地存储的todo列表
             }
+        },
+        // 生命周期函数
+        mounted () {
+            // 获取本地存储的todo列表
+            this.todoList = todoStorage.fetch();
         },
         watch: {
             todoList: {
@@ -179,10 +198,13 @@
                 if (this.newTodo) {
                     this.todoList.push({
                         title: this.newTodo.trim(),
-                        completed: false
+                        completed: false,
+                        id: todoStorage.id++
                     });
                     this.newTodo = "";
                 }
+                console.log("1-->");
+                console.log(this.todoList);
             },
             removeTodo (todo) {
                 this.todoList.splice(this.todoList.indexOf(todo), 1)
